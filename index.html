@@ -9,7 +9,7 @@
   --bg:#ffffff;
   --surface:#f5f5f5;
   --border:#e0e0e0;
-  --accent:#0B6E99;          /* Notion blue (light) */
+  --accent:#0B6E99;
   --text:#111;
   --muted:#666;
 }
@@ -18,7 +18,7 @@
     --bg:#111;
     --surface:#1a1a1a;
     --border:#333;
-    --accent:#529CCA;        /* Notion blue (dark) */
+    --accent:#529CCA;
     --text:#e6e6e6;
     --muted:#8a8a8a;
   }
@@ -40,7 +40,7 @@ header button.active,
 header button:hover{
   border-color:var(--accent);
   color:var(--accent);
-  background:var(--accent)1A;   /* subtle tint */
+  background:var(--accent)1A;
 }
 #panel{flex:1;position:relative}
 #panel>section{
@@ -67,6 +67,47 @@ header button:hover{
   width:100%;
   border:none;
   background:#fff;
+}
+
+/* Style pour le contenu initial dans preview */
+.intro-container {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 2rem;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.intro-container img {
+  width: 64px;
+  margin-bottom: 1rem;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.intro-container h1 {
+  font-size: 2rem;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+.intro-container h2 {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--muted);
+  margin-bottom: 2rem;
+}
+.intro-container p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+.intro-container footer {
+  margin-top: 2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 </style>
 </head>
@@ -99,18 +140,35 @@ header button:hover{
 </div>
 
 <script>
-/* ---------- STORAGE ---------- */
-const els = {html:document.getElementById('html'),
-             css :document.getElementById('css'),
-             js  :document.getElementById('js'),
-             preview:document.getElementById('preview')};
+const els = {
+  html: document.getElementById('html'),
+  css: document.getElementById('css'),
+  js: document.getElementById('js'),
+  preview: document.getElementById('preview')
+};
+
+// Contenu d’introduction à injecter à la première ouverture
+const defaultHTML = `
+  <div class="intro-container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png" alt="Notion Logo" />
+    <h1>Bienvenue dans ton widget Notion 🎉</h1>
+    <h2>CodePad – Bleu Notion</h2>
+    <p>Colle ton code HTML dans l'onglet <strong>HTML</strong>, et si besoin dans les onglets <strong>CSS</strong> ou <strong>JS</strong> selon le contenu que tu veux afficher.</p>
+    <p>Le bouton <strong>Preview</strong> te permet de visualiser le rendu en direct dans l’éditeur.</p>
+    <p>Le bouton <strong>Exporter</strong> ne fonctionne pas directement dans Notion, mais tu peux cliquer sur la petite <strong>flèche de commande Notion</strong> (en haut à droite du bloc) pour ouvrir l'app dans une nouvelle fenêtre.</p>
+    <p>Une fois dans la version externe, le bouton Exporter créera un fichier HTML que tu pourras ouvrir dans ton navigateur ou envoyer à quelqu’un.</p>
+    <footer>Made with ❤️ by Jérôme, Kimmy & ChatGPT</footer>
+  </div>
+`;
+
+if (!localStorage.getItem('html')) localStorage.setItem('html', defaultHTML);
 
 ['html','css','js'].forEach(k=>{
   const saved = localStorage.getItem(k);
   if(saved) els[k].value = saved;
 });
 
-/* ---------- MODE SWITCH ---------- */
+/* ---------- Mode Switch ---------- */
 const modes = document.querySelectorAll('.mode');
 modes.forEach(btn=>btn.addEventListener('click',()=>setMode(btn.dataset.mode)));
 
@@ -121,14 +179,13 @@ function setMode(mode){
   run();
 }
 
-/* ---------- LIVE PREVIEW ---------- */
+/* ---------- Live Preview ---------- */
 function run(){
   const html = els.html.value;
   const css  = `<style>${els.css.value}</style>`;
   const js   = `<script>${els.js.value}<\/script>`;
   const blob = new Blob([html+css+js],{type:'text/html'});
   els.preview.src = URL.createObjectURL(blob);
-
   ['html','css','js'].forEach(k=>localStorage.setItem(k,els[k].value));
 }
 els.html.addEventListener('input',run);
@@ -136,7 +193,7 @@ els.css .addEventListener('input',run);
 els.js  .addEventListener('input',run);
 run();
 
-/* ---------- EXPORT ---------- */
+/* ---------- Export ---------- */
 document.getElementById('exportBtn').addEventListener('click',()=>{
   const html = els.html.value;
   const css  = `<style>${els.css.value}</style>`;
