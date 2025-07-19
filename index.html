@@ -2,138 +2,156 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CodePad – Bleu Notion</title>
+<title>MicroPad – Notion Blue</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Prism dark theme (neutre) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-
 <style>
 :root{
   --bg:#ffffff;
-  --surface:#f7f7f7;
-  --surface2:#eeeeee;
-  --accent:#0B6E99; /* Bleu Notion (clair) */
-  --text:#111111;
-  --muted:#666666;
+  --surface:#f5f5f5;
   --border:#e0e0e0;
-  --radius:.75rem;
-  --shadow:0 2px 8px rgba(0,0,0,.08);
+  --accent:#0B6E99;          /* Notion blue (light) */
+  --text:#111;
+  --muted:#666;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#111111;
+    --bg:#111;
     --surface:#1a1a1a;
-    --surface2:#262626;
-    --accent:#529CCA; /* Bleu Notion (sombre) */
+    --border:#333;
+    --accent:#529CCA;        /* Notion blue (dark) */
     --text:#e6e6e6;
     --muted:#8a8a8a;
-    --border:#333333;
-    --shadow:0 2px 8px rgba(0,0,0,.4);
   }
 }
-*{box-sizing:border-box;font-family:"Inter",system-ui,"Fira Code",Consolas,monospace}
+*{box-sizing:border-box;font-family:Inter,system-ui,monospace}
 body{margin:0;height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text)}
-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--surface2);box-shadow:var(--shadow)}
-header h1{font-size:1.1rem;font-weight:600;margin:0;color:var(--accent)}
-header button{background:var(--accent);border:none;padding:.45rem .9rem;border-radius:var(--radius);color:#fff;font-weight:600;font-size:.85rem;cursor:pointer;transition:opacity .2s}
-header button:hover{opacity:.85}
-
-#layout{display:flex;flex:1;gap:.6rem;padding:.6rem}
-#editors{flex:1 1 60%;display:flex;flex-direction:column;gap:.6rem}
-.editor{flex:1;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-.editor header{background:var(--surface2);padding:.45rem .7rem;font-size:.75rem;font-weight:600;color:var(--muted)}
-.editor textarea{flex:1;border:none;resize:none;padding:.75rem;background:transparent;color:var(--text);font-size:.85rem;line-height:1.5;outline:none}
-.editor textarea::selection{background:var(--accent);color:#fff}
-
-#previewPane{flex:1 1 40%;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-#previewPane header{background:var(--surface2);padding:.45rem .7rem;font-size:.75rem;font-weight:600;color:var(--muted)}
-iframe{flex:1;width:100%;border:none;background:#fff}
-
-@media(max-width:900px){
-  #layout{flex-direction:column}
+header{display:flex;align-items:center;gap:.4rem;padding:.6rem 1rem;background:var(--surface);border-bottom:1px solid var(--border)}
+header button{
+  padding:.4rem .7rem;
+  border:1px solid var(--border);
+  border-radius:.4rem;
+  background:transparent;
+  color:var(--muted);
+  font-size:.75rem;
+  cursor:pointer;
+  transition:all .15s;
+}
+header button.active,
+header button:hover{
+  border-color:var(--accent);
+  color:var(--accent);
+  background:var(--accent)1A;   /* subtle tint */
+}
+#panel{flex:1;position:relative}
+#panel>section{
+  position:absolute;
+  inset:0;
+  display:none;
+  flex-direction:column;
+}
+#panel>section.active{display:flex}
+#panel textarea{
+  flex:1;
+  width:100%;
+  border:none;
+  resize:none;
+  padding:1rem;
+  background:transparent;
+  color:var(--text);
+  font-size:.9rem;
+  line-height:1.5;
+  outline:none;
+}
+#preview{
+  flex:1;
+  width:100%;
+  border:none;
+  background:#fff;
 }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>CodePad</h1>
-  <button id="exportBtn">Exporter .html</button>
+  <button data-mode="preview" class="mode active">Preview</button>
+  <button data-mode="html"   class="mode">HTML</button>
+  <button data-mode="css"    class="mode">CSS</button>
+  <button data-mode="js"     class="mode">JS</button>
+  <button id="exportBtn" style="margin-left:auto;">Export</button>
 </header>
 
-<div id="layout">
-  <div id="editors">
-    <div class="editor">
-      <header>HTML</header>
-      <textarea id="html" spellcheck="false" placeholder="<!-- HTML ici -->"></textarea>
-    </div>
-    <div class="editor">
-      <header>CSS</header>
-      <textarea id="css" spellcheck="false" placeholder="/* CSS ici */"></textarea>
-    </div>
-    <div class="editor">
-      <header>JS</header>
-      <textarea id="js" spellcheck="false" placeholder="// JavaScript ici"></textarea>
-    </div>
-  </div>
-
-  <div id="previewPane">
-    <header>Live preview</header>
+<div id="panel">
+  <section id="previewPane" class="active">
     <iframe id="preview"></iframe>
-  </div>
+  </section>
+
+  <section id="htmlPane">
+    <textarea id="html" spellcheck="false" placeholder="<!-- HTML -->"></textarea>
+  </section>
+
+  <section id="cssPane">
+    <textarea id="css" spellcheck="false" placeholder="/* CSS */"></textarea>
+  </section>
+
+  <section id="jsPane">
+    <textarea id="js" spellcheck="false" placeholder="// JavaScript"></textarea>
+  </section>
 </div>
 
 <script>
-const htmlEl  = document.getElementById('html');
-const cssEl   = document.getElementById('css');
-const jsEl    = document.getElementById('js');
-const preview = document.getElementById('preview');
+/* ---------- STORAGE ---------- */
+const els = {html:document.getElementById('html'),
+             css :document.getElementById('css'),
+             js  :document.getElementById('js'),
+             preview:document.getElementById('preview')};
 
-['html','css','js'].forEach(type=>{
-  const saved = localStorage.getItem(type);
-  if(saved) document.getElementById(type).value = saved;
+['html','css','js'].forEach(k=>{
+  const saved = localStorage.getItem(k);
+  if(saved) els[k].value = saved;
 });
-function run(){
-  const html = htmlEl.value;
-  const css  = `<style>${cssEl.value}</style>`;
-  const js   = `<script>${jsEl.value}<\/script>`;
-  const full = html + css + js;
-  const blob = new Blob([full],{type:'text/html'});
-  preview.src = URL.createObjectURL(blob);
-  ['html','css','js'].forEach(type=>localStorage.setItem(type,document.getElementById(type).value));
+
+/* ---------- MODE SWITCH ---------- */
+const modes = document.querySelectorAll('.mode');
+modes.forEach(btn=>btn.addEventListener('click',()=>setMode(btn.dataset.mode)));
+
+function setMode(mode){
+  modes.forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  document.querySelectorAll('#panel>section')
+          .forEach(s=>s.classList.toggle('active',s.id.startsWith(mode)));
+  run();
 }
-htmlEl.addEventListener('input',run);
-cssEl.addEventListener('input',run);
-jsEl.addEventListener('input',run);
+
+/* ---------- LIVE PREVIEW ---------- */
+function run(){
+  const html = els.html.value;
+  const css  = `<style>${els.css.value}</style>`;
+  const js   = `<script>${els.js.value}<\/script>`;
+  const blob = new Blob([html+css+js],{type:'text/html'});
+  els.preview.src = URL.createObjectURL(blob);
+
+  ['html','css','js'].forEach(k=>localStorage.setItem(k,els[k].value));
+}
+els.html.addEventListener('input',run);
+els.css .addEventListener('input',run);
+els.js  .addEventListener('input',run);
 run();
 
-document.getElementById('exportBtn').onclick = ()=>{
-  const html = htmlEl.value;
-  const css  = `<style>${cssEl.value}</style>`;
-  const js   = `<script>${jsEl.value}<\/script>`;
-  const final = `<!doctype html>
+/* ---------- EXPORT ---------- */
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const html = els.html.value;
+  const css  = `<style>${els.css.value}</style>`;
+  const js   = `<script>${els.js.value}<\/script>`;
+  const full = `<!doctype html>
 <html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Export CodePad</title>
-${css}
-</head>
-<body>
-${html}
-${js}
-</body>
+<head><meta charset="UTF-8"><title>Export</title>${css}</head>
+<body>${html}${js}</body>
 </html>`;
-  const blob = new Blob([final],{type:'text/html'});
+  const blob = new Blob([full],{type:'text/html'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'export.html';
   a.click();
-};
+});
 </script>
 </body>
 </html>
